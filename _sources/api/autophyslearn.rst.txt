@@ -1,0 +1,20 @@
+autophyslearn package
+=====================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   autophyslearn.postprocessing
+   autophyslearn.preprocessing
+   autophyslearn.spectroscopic
+
+Module contents
+---------------
+
+.. automodule:: autophyslearn
+   :members:
+   :undoc-members:
+   :show-inheritance:

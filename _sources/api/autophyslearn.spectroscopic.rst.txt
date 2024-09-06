@@ -1,0 +1,21 @@
+autophyslearn.spectroscopic package
+===================================
+
+Submodules
+----------
+
+autophyslearn.spectroscopic.nn module
+-------------------------------------
+
+.. automodule:: autophyslearn.spectroscopic.nn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: autophyslearn.spectroscopic
+   :members:
+   :undoc-members:
+   :show-inheritance:

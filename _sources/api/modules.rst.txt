@@ -1,0 +1,7 @@
+autophyslearn
+=============
+
+.. toctree::
+   :maxdepth: 4
+
+   autophyslearn
