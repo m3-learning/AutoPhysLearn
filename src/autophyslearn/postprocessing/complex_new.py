@@ -32,15 +32,15 @@ class ComplexPostProcessor:
         real = torch.real(fits)
 
         # Scale the real part using the dataset's real scaler, moving data to the GPU (cuda)
-        real_scaled = (real - torch.tensor(self.raw_data_scaler.real_scaler.mean).to(self.device)) / \
-                      torch.tensor(self.raw_data_scaler.real_scaler.std).to(self.device)
+        real_scaled = (real - torch.tensor(self.dataset.raw_data_scaler.real_scaler.mean).to(self.device)) / \
+                      torch.tensor(self.dataset.raw_data_scaler.real_scaler.std).to(self.device)
 
         # Extract the imaginary part of the complex tensor
         imag = torch.imag(fits)
 
         # Scale the imaginary part using the dataset's imaginary scaler, moving data to the GPU (cuda)
-        imag_scaled = (imag - torch.tensor(self.raw_data_scaler.imag_scaler.mean).to(self.device)) / \
-                      torch.tensor(self.raw_data_scaler.imag_scaler.std).to(self.device)
+        imag_scaled = (imag - torch.tensor(self.dataset.raw_data_scaler.imag_scaler.mean).to(self.device)) / \
+                      torch.tensor(self.dataset.raw_data_scaler.imag_scaler.std).to(self.device)
 
         # Stack the scaled real and imaginary components along a new dimension
         out = torch.stack((real_scaled, imag_scaled), dim=2)
