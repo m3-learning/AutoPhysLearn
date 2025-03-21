@@ -255,8 +255,8 @@ class Model(nn.Module):
             self.device = device
 
         self.model = model
-        self.model.dataset = dataset
-        self.model.training = training
+        self.dataset = dataset
+        self.training = training
         self.model_name = model_basename
         self.path = make_folder(path)
         self.datafed_path = datafed_path
@@ -328,7 +328,7 @@ class Model(nn.Module):
 
         kwargs = {
             "model": self.model,
-            "noise_level": self.model.dataset.noise,
+            "noise_level": self.dataset.noise,
             "optimizer_name": optimizer_name,
             "optimizer_": optimizer_,
             "epoch": epoch,
@@ -564,7 +564,7 @@ class Model(nn.Module):
                                 path,
                                 self.model_name,
                                 i,
-                                self.model.dataset.noise,
+                                self.dataset.noise,
                                 optimizer_name,
                                 epoch,
                                 total_time,
@@ -630,7 +630,7 @@ class Model(nn.Module):
                     path,
                     self.model_name,
                     i,
-                    self.model.dataset.noise,
+                    self.dataset.noise,
                     optimizer_name,
                     epoch,
                     total_time,
@@ -680,7 +680,7 @@ class Model(nn.Module):
                         path,
                         self.model_name,
                         i,
-                        self.model.dataset.noise,
+                        self.dataset.noise,
                         optimizer_name,
                         epoch,
                         total_time,
@@ -733,7 +733,7 @@ class Model(nn.Module):
             path,
             self.model_name,
             i,
-            self.model.dataset.noise,
+            self.dataset.noise,
             optimizer_name,
             epoch,
             total_time,
@@ -848,16 +848,16 @@ class Model(nn.Module):
             params[params[:, 0] < 0, 0] = np.abs(params[params[:, 0] < 0, 0])
 
         # Apply phase shift correction if needed
-        if self.model.dataset.NN_phase_shift is not None:
+        if self.dataset.NN_phase_shift is not None:
             params_scaled[:, 3] = torch.Tensor(
-                self.model.dataset.shift_phase(
+                self.dataset.shift_phase(
                     params_scaled[:, 3].detach().numpy(),
-                    self.model.dataset.NN_phase_shift,
+                    self.dataset.NN_phase_shift,
                 )
             )
             params[:, 3] = torch.Tensor(
-                self.model.dataset.shift_phase(
-                    params[:, 3].detach().numpy(), self.model.dataset.NN_phase_shift
+                self.dataset.shift_phase(
+                    params[:, 3].detach().numpy(), self.dataset.NN_phase_shift
                 )
             )
 
