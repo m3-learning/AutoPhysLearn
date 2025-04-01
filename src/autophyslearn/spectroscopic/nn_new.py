@@ -435,27 +435,28 @@ class Model(nn.Module):
             model = self.model # defining these here for now so that it goes into the local variables. 
             model_dict = {"model": model, "optimizer_": optimizer_}
             
-            # Instantiates the torchlogger object
-            torchlogger = TorchLogger(
-                model_dict,
-                self.datafed_path,
-                script_path=self.script_path, 
-                input_data_shape=(100,), 
-                dataset_id_or_path=self.dataset_id,
-                local_model_path=path,
-            )
+            if self.datafed:
+                # Instantiates the torchlogger object
+                torchlogger = TorchLogger(
+                    model_dict,
+                    self.datafed_path,
+                    script_path=self.script_path, 
+                    input_data_shape=(100,), 
+                    dataset_id_or_path=self.dataset_id,
+                    local_model_path=path,
+                )
 
-            # saves the notebook record id to the torchlogger object
-            if torchlogger.notebook_record_id is not None:
-                # gets the notebook record id from datafed if it was set
-                self.notebook_record_id = torchlogger.notebook_record_id
-                
-                # gets the notebook metadata that was extracted from the original notebook
-                self.notebook_metadata = torchlogger.notebook_metadata
-                
-                # gets the script path that was extracted from the original notebook
-                # once the script path is set to a datafed record id all future models will be a derivative of that record of the model.
-                self.script_path = torchlogger.notebook_record_id
+                # saves the notebook record id to the torchlogger object
+                if torchlogger.notebook_record_id is not None:
+                    # gets the notebook record id from datafed if it was set
+                    self.notebook_record_id = torchlogger.notebook_record_id
+                    
+                    # gets the notebook metadata that was extracted from the original notebook
+                    self.notebook_metadata = torchlogger.notebook_metadata
+                    
+                    # gets the script path that was extracted from the original notebook
+                    # once the script path is set to a datafed record id all future models will be a derivative of that record of the model.
+                    self.script_path = torchlogger.notebook_record_id
 
         # Training loop over epochs
         for epoch in range(epochs):
@@ -520,9 +521,8 @@ class Model(nn.Module):
                 except:
                     loss_.append(loss)
 
-                # sets the optimizer in the torchlogger object
-                
-                if self.datafed_path is not None:
+                # sets the optimizer in the torchlogger object if the torchlogger is defined 
+                if self.datafed:
                     torchlogger.optimizer = optimizer_
 
                 # Early stopping based on loss
