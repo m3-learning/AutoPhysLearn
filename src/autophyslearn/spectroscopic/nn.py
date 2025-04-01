@@ -125,6 +125,7 @@ class FC_Block(nn.Module):
             x=layer(x)
             # print('\t',x.shape)
         return x
+    
 class Multiscale1DFitter(nn.Module):
     """
     A neural network model for fitting 1D multiscale data using a combination of 1D convolutional layers and fully connected layers.
@@ -158,6 +159,8 @@ class Multiscale1DFitter(nn.Module):
                             "hidden_embedding": block_factory(FC_Block)([16,8,4])},
         skip_connections = ["hidden_xfc","hidden_embedding"],
         function_kwargs = {},
+        final_activation_function = lambda x: x,
+        final_activation_kwargs = {},
         **kwargs,
     ):
         """
@@ -188,6 +191,8 @@ class Multiscale1DFitter(nn.Module):
         self.num_fits = num_fits
         self.model_block_dict = model_block_dict
         self.skip_connections = skip_connections
+        self.final_activations = final_activation_function
+        self.final_activations_kwargs = final_activation_kwargs
         
         # Instantiate actual blocks with proper input sizes
         current_input_size = input_channels
@@ -236,7 +241,10 @@ class Multiscale1DFitter(nn.Module):
             x = getattr(self, key)(x)
         
         x = x.reshape(x.shape[0]*self.input_channels, self.num_fits, self.num_params)
+        
         # TODO: separate function for activations
+        x=self.final_activations(x, **self.final_activations_kwargs)
+        
         embedding = x
         unscaled_param = x
         # print(x.shape)
@@ -249,7 +257,7 @@ class Multiscale1DFitter(nn.Module):
             )
 
         # Pass the unscaled parameters to the fitting function
-        fits, params = self.function(unscaled_param, self.x_data, device=self.device, **self.function_kwargs)
+        fits = self.function(unscaled_param, self.x_data, device=self.device, **self.function_kwargs)
 
         out = fits
 
