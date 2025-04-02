@@ -848,7 +848,7 @@ class Model(nn.Module):
             params[params[:, 0] < 0, 0] = np.abs(params[params[:, 0] < 0, 0])
 
         # Apply phase shift correction if needed
-        if self.dataset.NN_phase_shift is not None:
+        if self.dataset.NN_phase_shift is not None: # should this be 0 instead of None?
             params_scaled[:, 3] = torch.Tensor(
                 self.dataset.shift_phase(
                     params_scaled[:, 3].detach().numpy(),
