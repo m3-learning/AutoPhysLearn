@@ -126,6 +126,7 @@ class FC_Block(nn.Module):
             # print('\t',x.shape)
         return x
     
+#TODO: modularize all steps of forward pass. Make graph visualizer
 class Multiscale1DFitter(nn.Module):
     """
     A neural network model for fitting 1D multiscale data using a combination of 1D convolutional layers and fully connected layers.
@@ -251,13 +252,15 @@ class Multiscale1DFitter(nn.Module):
         
         # If a scaler is provided, unscale the parameters
         if self.scaler is not None:
-            unscaled_param = (
-                embedding * torch.tensor(self.scaler.var_**0.5).cuda()
-                + torch.tensor(self.scaler.mean_).cuda()
-            )
+            # TODO: fix BE scaler to have a functional to apply this 
+            # unscaled_param = (
+            #     embedding * torch.tensor(self.scaler.var_**0.5).cuda()
+            #     + torch.tensor(self.scaler.mean_).cuda()
+            # )
+            unscaled_param = self.scaler.compute(embedding)
 
         # Pass the unscaled parameters to the fitting function
-        fits = self.function(unscaled_param, self.x_data, device=self.device, **self.function_kwargs)
+        fits = self.function(unscaled_param, self.x_data, **self.function_kwargs)
 
         out = fits
 
