@@ -161,8 +161,6 @@ class Multiscale1DFitter(nn.Module):
                             "hidden_embedding": block_factory(FC_Block)([16,8,4])},
         skip_connections = {"hidden_xfc": "hidden_embedding"}, # from key to value
         function_kwargs = {},
-        final_activation_function = lambda x: x,
-        final_activation_kwargs = {},
         **kwargs,
     ):
         """
@@ -181,7 +179,7 @@ class Multiscale1DFitter(nn.Module):
         """
         super().__init__()
 
-        self.function = function
+        self.function = function(**function_kwargs)
         self.x_data = x_data
         self.input_channels = input_channels
         self.scaler = scaler
@@ -193,8 +191,6 @@ class Multiscale1DFitter(nn.Module):
         self.num_fits = num_fits
         self.model_block_dict = model_block_dict
         self.skip_connections = skip_connections
-        self.final_activations = final_activation_function
-        self.final_activations_kwargs = final_activation_kwargs
         
         # Instantiate actual blocks with proper input sizes
         current_input_size = input_channels
@@ -257,23 +253,18 @@ class Multiscale1DFitter(nn.Module):
         x = x.reshape(x.shape[0]*self.input_channels, self.num_fits, self.num_params)
         
         # TODO: separate function for activations
-        x=self.final_activations(x, **self.final_activations_kwargs)
+        x=self.function.apply_activations(x)
         
         embedding = x
         unscaled_param = x
         # print(x.shape)
         
         # If a scaler is provided, unscale the parameters
-        if self.scaler is not None:
-            # TODO: fix BE scaler to have a functional to apply this 
-            # unscaled_param = (
-            #     embedding * torch.tensor(self.scaler.var_**0.5).cuda()
-            #     + torch.tensor(self.scaler.mean_).cuda()
-            # )
-            unscaled_param = self.scaler.compute(embedding)
+        if self.function.scale_parameters is not None:
+            unscaled_param = self.function.scale_parameters(embedding)
 
         # Pass the unscaled parameters to the fitting function
-        fits = self.function(unscaled_param, self.x_data, **self.function_kwargs)
+        fits = self.function.generate_fit(unscaled_param, self.x_data)
 
         out = fits
 
