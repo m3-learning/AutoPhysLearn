@@ -115,6 +115,7 @@ class FC_Block(nn.Module):
             hidden1_list.append(nn.SELU())
         self.hidden = nn.Sequential(*hidden1_list)
     
+        self.output_size = output_size_list[-1]
         self.output_channels = max(len(output_size_list)//10,2) # bs'd the ideal #channels after fc b
     
     def forward(self, x):
@@ -158,7 +159,7 @@ class Multiscale1DFitter(nn.Module):
                             "hidden_xfc": block_factory(FC_Block)([64,32,20]),
                             "hidden_x2": block_factory(Conv_Block)([4,4,4,4,4,4], [5,5,5,5,5,5], [16,8,4], True),
                             "hidden_embedding": block_factory(FC_Block)([16,8,4])},
-        skip_connections = ["hidden_xfc","hidden_embedding"],
+        skip_connections = {"hidden_xfc": "hidden_embedding"}, # from key to value
         function_kwargs = {},
         final_activation_function = lambda x: x,
         final_activation_kwargs = {},
@@ -199,17 +200,25 @@ class Multiscale1DFitter(nn.Module):
         current_input_size = input_channels
         self.model_block_dict = model_block_dict
         
+    
         
+        connections = {}
         for key, value in model_block_dict.items():
+            
             if isinstance(value, nn.Module): # if it is a nn.Module, set it as an attribute
                 setattr(self, key, value)
+                
             elif isinstance(value, object): # if it is a block factory, create the block and set it as an attribute
                 # create blocks in order to determine output sizes for next blocks
+                if key in skip_connections.values():
+                    current_input_size+=connections[key]
                 block = value.create(current_input_size)
                 try: 
-                    current_input_size = block.output_channels*block.output_length
+                    current_input_size = block.output_channels*block.output_length #channels after conv block
                 except: 
                     current_input_size = block.output_channels # bs'd the ideal #channels after fc block
+                if key in skip_connections.keys():
+                    connections[skip_connections[key]] = block.output_size
                 
                 setattr(self, key, block)
             else:
@@ -231,15 +240,19 @@ class Multiscale1DFitter(nn.Module):
         """
         x = x.reshape(x.shape[0], -1, x.shape[-1])
         
-        # Initialize empty connection with shape [1, 0, sequence_length]
-        connection = torch.empty(1, 0).to(self.device)
-        
+        # # Initialize empty connection with shape [1, 0, sequence_length]
+        # connection = torch.empty(1, 0).to(self.device).repeat(x.shape[0],1)
+        connections = {}
         for key in self.model_block_dict.keys():
             # print(key, x.shape)
             # print(getattr(self, key))
-            if key in self.skip_connections:
-                x = torch.cat((x.flatten(start_dim=1), connection.repeat(x.shape[0],1)), dim=1) # along batch 
+            if key in self.skip_connections.values():
+                x = torch.cat((x.flatten(start_dim=1), connections[key]), dim=1) # along batch 
+            
             x = getattr(self, key)(x)
+            
+            if key in self.skip_connections.keys():
+                connections[self.skip_connections[key]] = x
         
         x = x.reshape(x.shape[0]*self.input_channels, self.num_fits, self.num_params)
         
@@ -277,15 +290,17 @@ class Multiscale1DFitter(nn.Module):
             ) / torch.tensor(self.loops_scaler.std).cuda()
         else:
             out_scaled = out
+        
+        return out_scaled, unscaled_param
 
-        if self.training:
-            return out_scaled, unscaled_param
-        else:
-            # Return scaled embeddings and unscaled parameters when not in training mode
-            embeddings = (
-                unscaled_param.cuda() - torch.tensor(self.scaler.mean_).cuda()
-            ) / torch.tensor(self.scaler.var_**0.5).cuda()
-            return out_scaled, embeddings, unscaled_param
+        # if self.training:
+        #     return out_scaled, unscaled_param
+        # else:
+        #     # Return scaled embeddings and unscaled parameters when not in training mode
+        #     embeddings = (
+        #         unscaled_param.cuda() - torch.tensor(self.scaler.mean_).cuda()
+        #     ) / torch.tensor(self.scaler.var_**0.5).cuda()
+        #     return out_scaled, embeddings, unscaled_param
 
 
 class Model(nn.Module):
