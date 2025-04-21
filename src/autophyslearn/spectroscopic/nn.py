@@ -70,6 +70,9 @@ class Conv_Block(nn.Module):
         self.input_channels = input_size
         hidden_list = [nn.MaxPool1d(kernel_size=2)] if max_pool else []
         
+        # add batchnorm before actvation layers
+        # hidden_list.append(nn.BatchNorm1d(output_channels_list[-1]))
+            
         hidden_list.append(nn.Conv1d(in_channels=self.input_channels, 
                                      out_channels=output_channels_list[0], 
                                      kernel_size=kernel_size_list[0]))
@@ -83,9 +86,9 @@ class Conv_Block(nn.Module):
         
         hidden_list.append('spare')
         for i,p in enumerate(pool_list[::-1]):
-            hidden_list.insert(-2*i-1, nn.AdaptiveAvgPool1d(p))
+            hidden_list.insert(-(3*i+1), nn.AdaptiveAvgPool1d(p))
             
-        hidden_list.remove('spare')
+        hidden_list.remove('spare') # remove spare layer
             
         self.hidden = nn.Sequential(*hidden_list)
         self.output_channels = output_channels_list[-1]
@@ -93,11 +96,11 @@ class Conv_Block(nn.Module):
         
     def forward(self, x):
         x=x.reshape(x.shape[0], self.input_channels, -1)    
-        # print('input shape: ',x.shape)
+        print('input shape: ',x.shape)
         for i, layer in enumerate(self.hidden):
-            # print(f"\tlayer {i}:",layer)
+            print(f"\tlayer {i}:",layer)
             x=layer(x)
-            # print('\t',x.shape)
+            print('\t',x.shape)
         return x
     
         # return self.hidden(x)
@@ -106,25 +109,26 @@ class FC_Block(nn.Module):
     '''
     A neural network model for fitting 1D multiscale data using a combination of 1D convolutional layers and fully connected layers.
     '''
-    def __init__(self, input_size, output_size_list):
+    def __init__(self, input_size, output_size_list, last=False):
         super(FC_Block, self).__init__()
         hidden1_list = [nn.Linear(input_size, output_size_list[0])]
         hidden1_list.append(nn.SELU())
         for i in range(1,len(output_size_list)):
             hidden1_list.append(nn.Linear(output_size_list[i-1], output_size_list[i]))
-            hidden1_list.append(nn.SELU())
+            if not last: hidden1_list.append(nn.SELU())
+        # hidden1_list.append(nn.BatchNorm1d(output_size_list[-1]))
         self.hidden = nn.Sequential(*hidden1_list)
     
         self.output_size = output_size_list[-1]
-        self.output_channels = max(len(output_size_list)//10,2) # bs'd the ideal #channels after fc b
+        self.output_channels = max(len(output_size_list)//10,1) # bs'd the ideal #channels after fc b
     
     def forward(self, x):
         x=x.reshape(x.shape[0], -1)
-        # print('input shape: ',x.shape)
+        print('input shape: ',x.shape)
         for i, layer in enumerate(self.hidden):
-            # print(f"\tlayer {i}:",layer)
+            print(f"\tlayer {i}:",layer)
             x=layer(x)
-            # print('\t',x.shape)
+            print('\t',x.shape)
         return x
     
 #TODO: modularize all steps of forward pass. Make graph visualizer
