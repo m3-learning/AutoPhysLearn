@@ -96,11 +96,11 @@ class Conv_Block(nn.Module):
         
     def forward(self, x):
         x=x.reshape(x.shape[0], self.input_channels, -1)    
-        print('input shape: ',x.shape)
+        # print('input shape: ',x.shape)
         for i, layer in enumerate(self.hidden):
-            print(f"\tlayer {i}:",layer)
+            # print(f"\tlayer {i}:",layer)
             x=layer(x)
-            print('\t',x.shape)
+            # print('\t',x.shape)
         return x
     
         # return self.hidden(x)
@@ -124,11 +124,11 @@ class FC_Block(nn.Module):
     
     def forward(self, x):
         x=x.reshape(x.shape[0], -1)
-        print('input shape: ',x.shape)
+        # print('input shape: ',x.shape)
         for i, layer in enumerate(self.hidden):
-            print(f"\tlayer {i}:",layer)
+            # print(f"\tlayer {i}:",layer)
             x=layer(x)
-            print('\t',x.shape)
+            # print('\t',x.shape)
         return x
     
 #TODO: modularize all steps of forward pass. Make graph visualizer
