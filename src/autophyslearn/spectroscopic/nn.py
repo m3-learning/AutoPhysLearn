@@ -165,6 +165,7 @@ class Multiscale1DFitter(nn.Module):
 
         # If a scaler is provided, unscale the parameters
         if self.scaler is not None:
+           # self.scaler.fit(unscaled_param.cpu().detach().numpy())
             unscaled_param = (
                 embedding * torch.tensor(self.scaler.var_**0.5).to(self.device)#.cuda()
                 + torch.tensor(self.scaler.mean_).to(self.device)#.cuda()
