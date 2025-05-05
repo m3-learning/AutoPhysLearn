@@ -165,7 +165,6 @@ class Multiscale1DFitter(nn.Module):
 
         # If a scaler is provided, unscale the parameters
         if self.scaler is not None:
-           # self.scaler.fit(unscaled_param.cpu().detach().numpy())
             unscaled_param = (
                 embedding * torch.tensor(self.scaler.var_**0.5).to(self.device)#.cuda()
                 + torch.tensor(self.scaler.mean_).to(self.device)#.cuda()
@@ -224,7 +223,8 @@ class Model(nn.Module):
         device=None,
         datafed_path=None,
         script_path=None,
-       # notebook_metadata=None, # JGoddy commented this out 
+       # notebook_metadata=None, # JGoddy commented this out
+        dataset_id = None,
         **kwargs,
     ):
         """
@@ -264,7 +264,7 @@ class Model(nn.Module):
         self.script_path = script_path
         # self.notebook_metadata = notebook_metadata # JGoddy commented this out
 
-        self.dataset_id = dataset.dataset_id
+        self.dataset_id = dataset_id
 
         # Checks if the user wants to save the data to DataFed.
         if self.datafed_path is not None:
