@@ -268,7 +268,7 @@ class Multiscale1DFitter(nn.Module):
             unscaled_param = self.function.scale_parameters(embedding)
 
         # Pass the unscaled parameters to the fitting function
-        fits = self.function.generate_fit(unscaled_param, self.x_data)
+        fits = self.function.generate_fit(unscaled_param, spec_len=self.x_data.shape[-1])
 
         out = fits
 
