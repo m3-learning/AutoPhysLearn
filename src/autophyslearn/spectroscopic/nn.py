@@ -47,7 +47,7 @@ def calculate_size(L_in, **kwargs):
     return None, None
     
 def block_factory(block_class):
-    """Creates a factory for block classes that will set input sizes later."""
+    """Creates a factory for block classes to retroactively set input sizes."""
     class BlockFactory:
         def __init__(self, *args,**kwargs):
             self.args = args
@@ -275,16 +275,14 @@ class Multiscale1DFitter(nn.Module):
         # If post-processing is required, apply it
         if self.post_processing is not None:
             out = self.post_processing.compute(fits)
-        else:
-            out = fits
+        else: out = fits
 
         # If a loops scaler is provided, scale the final output
         if self.loops_scaler is not None:
             out_scaled = (
                 out - torch.tensor(self.loops_scaler.mean).cuda()
             ) / torch.tensor(self.loops_scaler.std).cuda()
-        else:
-            out_scaled = out
+        else: out_scaled = out
         
         return out_scaled, unscaled_param
 
