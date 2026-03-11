@@ -257,14 +257,14 @@ class Multiscale1DFitter(nn.Module):
         x = x.reshape(x.shape[0]*self.input_channels, self.num_fits, self.num_params)
         
         # TODO: separate function for activations
-        x=self.function.apply_activations(x)
+        x=self.function.apply_activations(x) # all values should be betwen [0,1)
         
         embedding = x
         unscaled_param = x
         # print(x.shape)
         
         # If a scaler is provided, unscale the parameters
-        if self.function.scale_parameters is not None:
+        if self.function.scale_parameters is not None: 
             unscaled_param = self.function.scale_parameters(embedding)
 
         # Pass the unscaled parameters to the fitting function
